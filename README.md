@@ -61,6 +61,8 @@ Create a variable group as prod & Add following parameters -
 3. In Script Path - provide path to "create_sp.ps1" script present in repository
 4. copy past following in arguments box and keep the rest of the parameters as default
 
+Note: - This task requires your DevOps service principal to have tenant wide grant to create service principals and assing roles using Microsoft Grap APIs 
+ 
 ```
 
 -sp_name $(sp_name) -sp_password $(sp_password) -resourcegrp $(resource_grp) -storagename $(storagename) -adbws_name $(adbws_name)
