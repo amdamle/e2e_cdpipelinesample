@@ -1,0 +1,17 @@
+{
+	"existing_cluster_id": "{cluster_id}",
+	"notebook_task": {
+		"notebook_path": "{notebook_path}",
+		"base_parameters": {
+			"containerName": "{containerName}",
+			"clientId": "{clientId}",
+			"mountName": "{mountName}",
+			"storageName": "{storageName}",
+			"clientSecret": "{clientCredential}",
+			"tenantId": "{tenantId}"
+		}
+	},
+	"email_notifications": {},
+	"name": "cluster_setup_job",
+	"max_concurrent_runs": 1
+}
