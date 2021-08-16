@@ -94,3 +94,12 @@ $(subId) /Shared/setup/setup $(container) $(storagename) $(appId) $(mount) $(sp_
 Following is the screenshot of adlsgen2 pyhon script rest of the scripts can be configured in similar way
 
 ![](imgs/python_1.png)
+
+
+## References ##
+
+[DevOps Task Variables](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#understand-variable-syntax)
+
+[Task Skipping control conditions](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/conditions?view=azure-devops&tabs=classic)
+
+[Azure Databricks REST API](https://docs.microsoft.com/en-us/azure/databricks/dev-tools/api/latest/)
