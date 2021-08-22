@@ -1,0 +1,144 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none
+stages:
+  - stage: DeployDataLake
+    displayName: 'Datalake in a Box'
+    jobs:
+      - deployment:
+        displayName: 'Datalake in a Box'
+        pool:
+          name: 'AutoTest_Pool01'
+        environment: PROD
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - checkout: self
+                clean: true
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Resource Group'
+                condition:  eq(variables.deploy_ws, 'true')
+                inputs:
+                  deploymentScope: 'Subscription'
+                  azureResourceManagerConnection: 'autosvc_conn001'
+                  subscriptionId: '$(subId)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resource_grp)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/resource_grp/azuredeploy.json'
+                  csmParametersFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/resource_grp/parameters.json'
+                  overrideParameters: '-resourceGroupName $(resource_grp) -location $(location)'
+                  deploymentMode: 'Incremental'
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Storage'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: 'autosvc_conn001'
+                  subscriptionId: '$(subId)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resource_grp)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/rg_storage/azuredeploy.json'
+                  csmParametersFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/rg_storage/parameters.json'
+                  overrideParameters: '-location $(location) -storageAccountName "$(storagename)" -accountType "Standard_LRS" -kind "StorageV2" -accessTier "Hot" -minimumTlsVersion "TLS1_2" -supportsHttpsTrafficOnly true -allowBlobPublicAccess true -allowSharedKeyAccess true -defaultOAuth false -networkAclsBypass "AzureServices" -networkAclsDefaultAction "Allow" -isHnsEnabled true -isContainerSoftDeleteEnabled true -containerSoftDeleteRetentionDays 7 -isShareSoftDeleteEnabled true -shareSoftDeleteRetentionDays 7'
+                  deploymentMode: 'Incremental'
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy ADF'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: 'autosvc_conn001'
+                  subscriptionId: '$(subId)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resource_grp)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/datafactory/azuredeploy.json'
+                  csmParametersFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/datafactory/azuredeploy.parameters.json'
+                  overrideParameters: '-name $(datafactoryname) -location "$(location)"'
+                  deploymentMode: 'Incremental'
+              - task: AzureResourceManagerTemplateDeployment@3
+                displayName: 'Deploy Databricks Workspace'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: 'autosvc_conn001'
+                  subscriptionId: '$(subId)'
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: '$(resource_grp)'
+                  location: '$(location)'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/databricks/template.json'
+                  csmParametersFile: '$(System.DefaultWorkingDirectory)/ARM_Templates/databricks/parameters.json'
+                  overrideParameters: '-location $(location) -workspaceName $(adbws_name) -tier "standard" -tagValues {"usage":"autocicd"}'
+                  deploymentMode: 'Incremental'
+              - task: AzurePowerShell@5
+                displayName: 'Create Service Principal and Assign Role'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  azureSubscription: 'autosvc_conn001'
+                  ScriptType: 'FilePath'
+                  ScriptPath: '$(System.DefaultWorkingDirectory)/scripts/create_sp.ps1'
+                  ScriptArguments: '-sp_name $(sp_name) -sp_password $(sp_password) -resourcegrp $(resource_grp) -storagename $(storagename) -adbws_name $(adbws_name)'
+                  azurePowerShellVersion: 'LatestVersion'
+              - task: databricksDeployScripts@0
+                displayName: 'Deploy Notebooks in Databricks Workspace'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  authMethod: 'servicePrincipal'
+                  applicationId: '$(appId)'
+                  spSecret: '$(sp_password)'
+                  resourceGroup: '$(resource_grp)'
+                  workspace: '$(adbws_name)'
+                  subscriptionId: '$(subId)'
+                  tenantId: '$(tenantId)'
+                  region: '$(location)'
+                  localPath: '$(System.DefaultWorkingDirectory)/notebooks/Shared'
+                  databricksPath: '/Shared'
+              - task: databricksClusterTask@0
+                displayName: 'Create Databricks Cluster'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  authMethod: 'servicePrincipal'
+                  applicationId: '$(appId)'
+                  spSecret: '$(sp_password)'
+                  resourceGroup: '$(resource_grp)'
+                  workspace: '$(adbws_name)'
+                  subscriptionId: '$(subId)'
+                  tenantId: '$(tenantId)'
+                  region: '$(location)'
+                  sourcePath: '$(System.DefaultWorkingDirectory)/databricks_cluster_config/singlenodecluster.json'
+              - task: UsePythonVersion@0
+                displayName: 'Use Python3'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  versionSpec: '3.x'
+                  addToPath: true
+                  architecture: 'x64'
+              - task: PythonScript@0
+                displayName: 'Install Modules'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  scriptSource: 'filePath'
+                  scriptPath: '$(System.DefaultWorkingDirectory)/scripts/install_modules.py'
+              - task: PythonScript@0
+                displayName: 'Create Storage Container and Upload file'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  scriptSource: 'filePath'
+                  scriptPath: '$(System.DefaultWorkingDirectory)/scripts/manage_adlsg2.py'
+                  arguments: '$(appId) $(sp_password) $(tenantId) $(storagename) $(container) $(outcontainername) "titanic.csv" "$(System.DefaultWorkingDirectory)/_AutoSetupWS_Branch/sample-data/titanic.csv"'
+              - task: PythonScript@0
+                displayName: 'Create & Run ADB Setup Job'
+                condition: eq(variables.deploy_ws, 'true')
+                inputs:
+                  scriptSource: 'filePath'
+                  scriptPath: '$(System.DefaultWorkingDirectory)/scripts/create_setupjob.py'
+                  arguments: '$(subId) /Shared/setup/setup $(container) $(storagename) $(appId) $(mount) $(sp_password) $(tenantId) $(adbws_name) $(resource_grp)'

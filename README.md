@@ -2,7 +2,7 @@ This repository is to help users who are** new to Azure DevOps** and want to cre
 ## What Artifacts It Creates? ##
 Repository contains Sample Pipeline template that performs following activities - 
 1. Create Azure Components e.g. Azure Resource Group, Azure Data Factory, Azure Storage, Data Bricks
-2. Create Service Principal and assign specific roles based on the component i.e. "Storage Data Contributor" role for Azure Storage, "Contributor" role for Azure DataBricks Workspace 
+2. Create Service Principal and assing specific roles based on the component i.e. "Storage Data Contributor" role for Azure Storage, "Contributor" role for Azure DataBricks Workspace 
 3. Creates containers in Azure Storage and uploads sample data file
 4. Deploy Notebook code from your git repository to the newly created Azure DataBricks worksapce
 5. Creates Databricks Cluster usign the predefined configuration
@@ -61,8 +61,6 @@ Create a variable group as prod & Add following parameters -
 3. In Script Path - provide path to "create_sp.ps1" script present in repository
 4. copy past following in arguments box and keep the rest of the parameters as default
 
-Note: - This task requires your DevOps service principal to have tenant wide grant to create service principals and assign roles using Microsoft Grap APIs 
- 
 ```
 
 -sp_name $(sp_name) -sp_password $(sp_password) -resourcegrp $(resource_grp) -storagename $(storagename) -adbws_name $(adbws_name)
