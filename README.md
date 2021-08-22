@@ -1,4 +1,4 @@
-This repository is to help users who are** new to Azure DevOps** and want to create a E2e Release Pipeline. 
+This repository is to help users who are **new to Azure DevOps** and want to create a E2e Release Pipeline. 
 ## What Artifacts It Creates? ##
 Repository contains Sample Pipeline template that performs following activities - 
 1. Create Azure Components e.g. Azure Resource Group, Azure Data Factory, Azure Storage, Data Bricks
