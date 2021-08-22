@@ -14,7 +14,12 @@ Repository contains Sample Pipeline template that performs following activities 
 3. Service connection for DevOps - This is a service principal that has contributor access to your Azure subscription refer [_this_](https://docs.microsoft.com/en-us/azure/devops/pipelines/library/service-endpoints?view=azure-devops&tabs=yaml) link
 4. Knowledge of Azure and Azure DevOps is advantageous 
 
-## How to Start ##
+# How to Start #
+There are 2 options to deploy the components - 
+1. AzureDevOps classic pipelines as mentioned below or 
+2. Use YAML pipeline definition included in the repo to deploy
+
+## Deploy using Classic pipeline ##
 Please refer the below pipeline image. There are 3 Types of Tasks need to be created
 1. ARM Deployment Task
 2. Azure Powershell Task
