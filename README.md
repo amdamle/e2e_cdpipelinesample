@@ -16,8 +16,8 @@ Repository contains Sample Pipeline template that performs following activities 
 
 # How to Start #
 There are 2 options to deploy the components - 
-1. AzureDevOps classic pipelines as mentioned below or 
-2. Use YAML pipeline definition included in the repo to deploy
+1. Use YAML pipeline definition included in the repo to deploy or 
+2. AzureDevOps classic pipelines as mentioned below
 
 ## Deploy using Classic pipeline ##
 Please refer the below pipeline image. There are 3 Types of Tasks need to be created
